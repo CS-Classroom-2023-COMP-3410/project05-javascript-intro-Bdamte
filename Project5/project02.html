@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive To-Do List</title>
+  <Style>body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .todo-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .input-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  #task-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  #add-task {
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .filters button {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  #task-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: #f9f9f9;
+    cursor: grab;
+  }
+  
+  .task-item.completed {
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+  
+  .task-item .actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .task-item .actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+  }</Style>
+</head>
+<body>
+  <div class="todo-container">
+    <h1>To-Do List</h1>
+    <div class="input-section">
+      <input type="text" id="task-input" placeholder="Add a new task...">
+      <button id="add-task">Add Task</button>
+    </div>
+    <div class="filters">
+      <button id="show-all">All</button>
+      <button id="show-completed">Completed</button>
+      <button id="show-pending">Pending</button>
+    </div>
+    <ul id="task-list"></ul>
+  </div>
+  <Script>const taskInput = document.getElementById('task-input');
+    const addTaskButton = document.getElementById('add-task');
+    const taskList = document.getElementById('task-list');
+    const showAllButton = document.getElementById('show-all');
+    const showCompletedButton = document.getElementById('show-completed');
+    const showPendingButton = document.getElementById('show-pending');
+    
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    
+    // Render tasks
+    function renderTasks(filter = 'all') {
+      taskList.innerHTML = '';
+      const filteredTasks = tasks.filter(task => {
+        if (filter === 'completed') return task.completed;
+        if (filter === 'pending') return !task.completed;
+        return true;
+      });
+    
+      filteredTasks.forEach((task, index) => {
+        const taskItem = document.createElement('li');
+        taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+        taskItem.draggable = true;
+        taskItem.innerHTML = `
+          <span>${task.text}</span>
+          <div class="actions">
+            <button onclick="toggleComplete(${index})">${task.completed ? 'Undo' : 'Complete'}</button>
+            <button onclick="editTask(${index})">Edit</button>
+            <button onclick="deleteTask(${index})">Delete</button>
+          </div>
+        `;
+        taskList.appendChild(taskItem);
+      });
+    }
+    
+    // Add task
+    addTaskButton.addEventListener('click', () => {
+      const text = taskInput.value.trim();
+      if (text) {
+        tasks.push({ text, completed: false });
+        taskInput.value = '';
+        saveTasks();
+        renderTasks();
+      }
+    });
+    
+    // Toggle task completion
+    function toggleComplete(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    }
+    
+    // Edit task
+    
+    //****THIS DOES NOT WORK FIX LATER */
+    function editTask(index) {
+      const newText = prompt('Edit your task:', tasks[index].text);
+      if (newText !== null) {
+        tasks[index].text = newText.trim();
+        saveTasks();
+        renderTasks();
+      }
+    }
+    
+    // Delete task
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+    
+    // Save tasks to localStorage
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+    
+    // Filter tasks
+    showAllButton.addEventListener('click', () => renderTasks('all'));
+    showCompletedButton.addEventListener('click', () => renderTasks('completed'));
+    showPendingButton.addEventListener('click', () => renderTasks('pending'));
+    
+    // Drag-and-drop reordering (basic implementation)
+    let draggedItem = null;
+    
+    taskList.addEventListener('dragstart', (e) => {
+      draggedItem = e.target;
+      e.target.style.opacity = '0.4';
+    });
+    
+    taskList.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(taskList, e.clientY);
+      const currentItem = document.querySelector('.dragging');
+      if (afterElement == null) {
+        taskList.appendChild(draggedItem);
+      } else {
+        taskList.insertBefore(draggedItem, afterElement);
+      }
+    });
+    
+    taskList.addEventListener('dragend', (e) => {
+      e.target.style.opacity = '1';
+    });
+    
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+    
+    // Initial render
+    renderTasks();</Script>
+</body>
+</html>

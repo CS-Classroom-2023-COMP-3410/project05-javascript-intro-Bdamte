@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Matching Game</title>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .game-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+  }
+  
+  .stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-template-rows: repeat(4, 100px);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .card {
+    background-color: #007bff;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+  
+  .card.flipped {
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  
+  .card.matched {
+    background-color: #28a745;
+    cursor: default;
+  }
+  
+  #restart-button {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  #restart-button:hover {
+    background-color: #c82333;
+  }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Memory Matching Game</h1>
+    <div class="stats">
+      <p>Moves: <span id="move-counter">0</span></p>
+      <p>Time: <span id="timer">0</span>s</p>
+    </div>
+    <div id="card-grid" class="card-grid"></div>
+    <button id="restart-button">Restart Game</button>
+  </div>
+  <script>
+    const cardGrid = document.getElementById('card-grid');
+const moveCounter = document.getElementById('move-counter');
+const timerDisplay = document.getElementById('timer');
+const restartButton = document.getElementById('restart-button');
+
+let cards = [];
+let flippedCards = [];
+let moveCount = 0;
+let timer = 0;
+let timerInterval = null;
+
+// Card data (pairs of values) made on purpose to have 8 pairs
+const cardValues = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+// Initialize the game
+function initGame() {
+  cards = shuffle(cardValues);
+  renderCards();
+  moveCount = 0;
+  timer = 0;
+  flippedCards = [];
+  clearInterval(timerInterval);
+  moveCounter.textContent = moveCount;
+  timerDisplay.textContent = timer;
+  startTimer();
+}
+
+// Render cards on the grid
+function renderCards() {
+  cardGrid.innerHTML = '';
+  cards.forEach((value, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.index = index;
+    card.textContent = value;
+    card.addEventListener('click', flipCard);
+    cardGrid.appendChild(card);
+  });
+}
+
+// Shuffle the card values
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+// Flip a card
+function flipCard() {
+  if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
+    this.classList.add('flipped');
+    flippedCards.push(this);
+
+    if (flippedCards.length === 2) {
+      moveCount++;
+      moveCounter.textContent = moveCount;
+      checkForMatch();
+    }
+  }
+}
+
+// Check if the flipped cards match
+function checkForMatch() {
+  const [card1, card2] = flippedCards;
+  if (card1.textContent === card2.textContent) {
+    card1.classList.add('matched');
+    card2.classList.add('matched');
+    flippedCards = [];
+
+    // Check if all cards are matched
+    if (document.querySelectorAll('.matched').length === cards.length) {
+      clearInterval(timerInterval);
+      alert(`You won in ${moveCount} moves and ${timer} seconds!`);
+    }
+  } else {
+    setTimeout(() => {
+      card1.classList.remove('flipped');
+      card2.classList.remove('flipped');
+      flippedCards = [];
+    }, 1000);
+  }
+}
+
+// Start the timer
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timer++;
+    timerDisplay.textContent = timer;
+  }, 1000);
+}
+
+// Restart the game
+restartButton.addEventListener('click', initGame);
+
+// Initialize the game on page load
+initGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keyboard Trainer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
+    }
+    .text-display {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px;
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+    .results {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+    }
+    .controls button {
+      padding: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    .controls button:hover {
+      background-color: #005bb5;
+    }
+    .controls select {
+      padding: 10px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Keyboard Trainer</h1>
+    <div class="text-display" id="text-display"></div>
+    <input type="text" class="input-field" id="input-field" placeholder="Start typing here...">
+    <div class="results" id="results"></div>
+    <div class="controls">
+      <select id="difficulty-select">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button onclick="startNewTest()">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    // DOM elements
+const textDisplay = document.getElementById('text-display');
+const inputField = document.getElementById('input-field');
+const resultsElement = document.getElementById('results');
+const difficultySelect = document.getElementById('difficulty-select');
+
+// State
+let startTime;
+let currentText = '';
+let errors = 0;
+
+// Generate random text based on difficulty
+function generateText(difficulty) {
+  const easyText = "The quick brown fox jumps over the lazy dog.";
+  const mediumText = "Programming is fun and challenging!";
+  const hardText = "C0mpl3x t3xt w1th numb3rs & $ymb0ls!";
+  switch (difficulty) {
+    case 'easy':
+      return easyText;
+    case 'medium':
+      return mediumText;
+    case 'hard':
+      return hardText;
+    default:
+      return easyText;
+  }
+}
+
+// Start a new test
+function startNewTest() {
+  currentText = generateText(difficultySelect.value);
+  textDisplay.textContent = currentText;
+  inputField.value = '';
+  inputField.focus();
+  startTime = Date.now();
+  errors = 0;
+  resultsElement.textContent = '';
+}
+
+// Check user input(Gets negtaive accuracy) if you make a mistake at the beginning and have to go back...
+inputField.addEventListener('input', () => {
+  const userInput = inputField.value;
+  let correct = true;
+  for (let i = 0; i < userInput.length; i++) {
+    if (userInput[i] !== currentText[i]) {
+      correct = false;
+      errors++;
+    }
+  }
+  if (userInput === currentText) {
+    const timeTaken = (Date.now() - startTime) / 1000;
+    const wpm = Math.round((currentText.split(' ').length / timeTaken) * 60);
+    const accuracy = Math.round(((currentText.length - errors) / currentText.length) * 100);
+    resultsElement.textContent = `WPM: ${wpm}, Accuracy: ${accuracy}%`;
+  }
+});
+
+// Initialize
+startNewTest();
+  </script>
+</body>
+</html>

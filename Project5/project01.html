@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customizable Digital Clock</title>
+  <Style>body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #000;
+  }
+  
+  .clock-container {
+    text-align: center;
+  }
+  
+  .clock {
+    font-size: 48px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  label {
+    color: #000000;
+  }
+  
+  input[type="number"] {
+    width: 60px;
+  }
+  
+  .alarm {
+    margin-top: 20px;
+  }</Style>
+
+</head>
+<body>
+  <div class="clock-container">
+    <div id="clock" class="clock"></div>
+    <div class="controls">
+      <label>
+        <input type="checkbox" id="toggle-format"> 12-Hour Format
+      </label>
+      <label>
+        Font Size:
+        <input type="number" id="font-size" min="10" max="100" value="48">
+      </label>
+      <label>
+        Text Color:
+        <input type="color" id="text-color" value="#ffffff">
+      </label>
+      <label>
+        Background Color:
+        <input type="color" id="bg-color" value="#000000">
+      </label>
+      <div class="alarm">
+        <label>
+          Set Alarm:
+          <input type="time" id="alarm-time">
+        </label>
+        <button id="set-alarm">Set Alarm</button>
+        <button id="clear-alarm">Clear Alarm</button>
+      </div>
+    </div>
+  </div>
+  <script>const clockElement = document.getElementById('clock');
+    const toggleFormat = document.getElementById('toggle-format');
+    const fontSizeInput = document.getElementById('font-size');
+    const textColorInput = document.getElementById('text-color');
+    const bgColorInput = document.getElementById('bg-color');
+    const alarmTimeInput = document.getElementById('alarm-time');
+    const setAlarmButton = document.getElementById('set-alarm');
+    const clearAlarmButton = document.getElementById('clear-alarm');
+    
+    let is12HourFormat = false;
+    let alarmTime = null;
+    let alarmTimeout = null;
+    
+    // Load saved preferences
+    loadPreferences();
+    
+    // Update clock every second
+    setInterval(updateClock, 1000);
+    
+    // Toggle 12/24-hour format
+    toggleFormat.addEventListener('change', () => {
+      is12HourFormat = toggleFormat.checked;
+      savePreferences();
+    });
+    
+    // Update font size
+    fontSizeInput.addEventListener('input', () => {
+      clockElement.style.fontSize = `${fontSizeInput.value}px`;
+      savePreferences();
+    });
+    
+    // Update text color
+    textColorInput.addEventListener('input', () => {
+      clockElement.style.color = textColorInput.value;
+      savePreferences();
+    });
+    
+    // Update background color
+    bgColorInput.addEventListener('input', () => {
+      document.body.style.backgroundColor = bgColorInput.value;
+      savePreferences();
+    });
+    
+    // Set alarm(this works but i dont know how to add a sound to it)
+    setAlarmButton.addEventListener('click', () => {
+      if (alarmTimeInput.value) {
+        alarmTime = alarmTimeInput.value;
+        checkAlarm();
+        alert(`Alarm set for ${alarmTime}`);
+      }
+    });
+    
+    // Clear alarm
+    clearAlarmButton.addEventListener('click', () => {
+      alarmTime = null;
+      clearTimeout(alarmTimeout);
+      alert('Alarm cleared');
+    });
+    
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes().toString().padStart(2, '0');
+      let seconds = now.getSeconds().toString().padStart(2, '0');
+      let period = '';
+    
+      if (is12HourFormat) {
+        period = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+      }
+    
+      const timeString = is12HourFormat
+        ? `${hours}:${minutes}:${seconds} ${period}`
+        : `${hours}:${minutes}:${seconds}`;
+    
+      clockElement.textContent = timeString;
+    }
+    
+    function checkAlarm() {
+      if (!alarmTime) return;
+    
+      const now = new Date();
+      const [alarmHours, alarmMinutes] = alarmTime.split(':');
+      const alarmDate = new Date(now);
+      alarmDate.setHours(alarmHours, alarmMinutes, 0, 0);
+    
+      if (now >= alarmDate) {
+        alarmDate.setDate(alarmDate.getDate() + 1); // Set for next day
+      }
+    
+      const timeUntilAlarm = alarmDate - now;
+      alarmTimeout = setTimeout(() => {
+        alert('Alarm!');
+        alarmTime = null;
+      }, timeUntilAlarm);
+    }
+    
+    function savePreferences() {
+      const preferences = {
+        is12HourFormat,
+        fontSize: fontSizeInput.value,
+        textColor: textColorInput.value,
+        bgColor: bgColorInput.value,
+        alarmTime,
+      };
+      localStorage.setItem('clockPreferences', JSON.stringify(preferences));
+    }
+    
+    function loadPreferences() {
+      const savedPreferences = JSON.parse(localStorage.getItem('clockPreferences'));
+      if (savedPreferences) {
+        is12HourFormat = savedPreferences.is12HourFormat;
+        toggleFormat.checked = is12HourFormat;
+        fontSizeInput.value = savedPreferences.fontSize;
+        clockElement.style.fontSize = `${savedPreferences.fontSize}px`;
+        textColorInput.value = savedPreferences.textColor;
+        clockElement.style.color = savedPreferences.textColor;
+        bgColorInput.value = savedPreferences.bgColor;
+        document.body.style.backgroundColor = savedPreferences.bgColor;
+        alarmTime = savedPreferences.alarmTime;
+        if (alarmTime) {
+          alarmTimeInput.value = alarmTime;
+          checkAlarm();
+        }
+      }
+    }</script>
+</body>
+</html>

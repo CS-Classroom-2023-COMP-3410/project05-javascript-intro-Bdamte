@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Quiz App</title>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .quiz-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+  }
+  
+  .question-container {
+    margin-bottom: 20px;
+  }
+  
+  .options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .option {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+  }
+  
+  .option:hover {
+    background-color: #0056b3;
+  }
+  
+  .feedback {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  
+  .navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .navigation button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .navigation button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .results-container {
+    display: none;
+  }
+  
+  .review-container {
+    margin-top: 20px;
+  }
+  
+  .review-item {
+    margin-bottom: 10px;
+  }
+  
+  #restart-button {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  #restart-button:hover {
+    background-color: #c82333;
+  }
+  
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Dynamic Quiz App</h1>
+    <div id="question-container" class="question-container">
+      <p id="question-text"></p>
+      <div id="options-container" class="options-container"></div>
+      <p id="feedback" class="feedback"></p>
+    </div>
+    <div class="navigation">
+      <button id="prev-button">Previous</button>
+      <button id="next-button">Next</button>
+    </div>
+    <div id="results-container" class="results-container">
+      <h2>Quiz Results</h2>
+      <p>Your Score: <span id="score"></span></p>
+      <p>Total Questions: <span id="total-questions"></span></p>
+      <div id="review-container" class="review-container"></div>
+      <button id="restart-button">Restart Quiz</button>
+    </div>
+  </div>
+  <script>
+const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
+const feedback = document.getElementById('feedback');
+const prevButton = document.getElementById('prev-button');
+const nextButton = document.getElementById('next-button');
+const resultsContainer = document.getElementById('results-container');
+const scoreDisplay = document.getElementById('score');
+const totalQuestionsDisplay = document.getElementById('total-questions');
+const reviewContainer = document.getElementById('review-container');
+const restartButton = document.getElementById('restart-button');
+
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = [];
+
+// Predefined questions only made three for demo purposes
+const questions = [
+  {
+    question: "What is the capital of France?",
+    options: ["Paris", "London", "Berlin", "Madrid"],
+    correctAnswer: "Paris"
+  },
+  {
+    question: "Which planet is known as the Red Planet?",
+    options: ["Earth", "Mars", "Jupiter", "Saturn"],
+    correctAnswer: "Mars"
+  },
+  {
+    question: "Who wrote 'To Kill a Mockingbird'?",
+    options: ["Harper Lee", "Mark Twain", "J.K. Rowling", "Stephen King"],
+    correctAnswer: "Harper Lee"
+  }
+];
+
+// Initialize the quiz
+function initQuiz() {
+  currentQuestionIndex = 0;
+  score = 0;
+  userAnswers = [];
+  resultsContainer.style.display = 'none';
+  questionContainer.style.display = 'block';
+  loadQuestion();
+}
+
+// Load the current question
+function loadQuestion() {
+  const question = questions[currentQuestionIndex];
+  questionText.textContent = question.question;
+  optionsContainer.innerHTML = '';
+  question.options.forEach((option, index) => {
+    const button = document.createElement('button');
+    button.className = 'option';
+    button.textContent = option;
+    button.addEventListener('click', () => selectAnswer(option));
+    optionsContainer.appendChild(button);
+  });
+  updateNavigation();
+}
+
+// Select an answer
+function selectAnswer(selectedOption) {
+  const question = questions[currentQuestionIndex];
+  userAnswers[currentQuestionIndex] = selectedOption;
+  if (selectedOption === question.correctAnswer) {
+    score++;
+    feedback.textContent = 'Correct!';
+  } else {
+    feedback.textContent = `Incorrect! The correct answer is ${question.correctAnswer}.`;
+  }
+  disableOptions();
+}
+
+// Disable options after selecting an answer just for demo purposes
+function disableOptions() {
+  const options = document.querySelectorAll('.option');
+  options.forEach(option => {
+    option.disabled = true;
+  });
+}
+
+// Update navigation buttons
+function updateNavigation() {
+  prevButton.disabled = currentQuestionIndex === 0;
+  nextButton.disabled = currentQuestionIndex === questions.length - 1;
+}
+
+// Move to the next question
+nextButton.addEventListener('click', () => {
+  if (currentQuestionIndex < questions.length - 1) {
+    currentQuestionIndex++;
+    loadQuestion();
+  }
+});
+
+// Move to the previous question
+prevButton.addEventListener('click', () => {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    loadQuestion();
+  }
+});
+
+// Show results
+function showResults() {
+  resultsContainer.style.display = 'block';
+  questionContainer.style.display = 'none';
+  scoreDisplay.textContent = score;
+  totalQuestionsDisplay.textContent = questions.length;
+  reviewContainer.innerHTML = '';
+  questions.forEach((question, index) => {
+    const reviewItem = document.createElement('div');
+    reviewItem.className = 'review-item';
+    reviewItem.innerHTML = `
+      <p><strong>Question ${index + 1}:</strong> ${question.question}</p>
+      <p><strong>Your Answer:</strong> ${userAnswers[index] || 'Not answered'}</p>
+      <p><strong>Correct Answer:</strong> ${question.correctAnswer}</p>
+    `;
+    reviewContainer.appendChild(reviewItem);
+  });
+}
+
+// Restart the quiz
+restartButton.addEventListener('click', initQuiz);
+
+// Initialize the quiz on page load
+initQuiz();
+
+  </script>
+</body>
+</html>

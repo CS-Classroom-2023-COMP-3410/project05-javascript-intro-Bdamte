@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Periodic Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #search-bar {
+      margin-bottom: 20px;
+      padding: 10px;
+      width: 300px;
+    }
+    #periodic-table {
+      display: grid;
+      grid-template-columns: repeat(18, 50px);
+      gap: 5px;
+    }
+    .element {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .element:hover {
+      background-color: #f0f0f0;
+    }
+    .highlight {
+      background-color: #ffcc00;
+    }
+    .group-highlight {
+      background-color: #ccffcc;
+    }
+    #element-details {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="search-bar" placeholder="Search by name, symbol, or atomic number...">
+  <div id="periodic-table"></div>
+  <div id="element-details"></div>
+
+  <script>
+    // Data for the periodic table
+const elements = [
+  { atomicNumber: 1, symbol: 'H', name: 'Hydrogen', group: 1 },
+  { atomicNumber: 2, symbol: 'He', name: 'Helium', group: 18 },
+  { atomicNumber: 3, symbol: 'Li', name: 'Lithium', group: 1 },
+  { atomicNumber: 4, symbol: 'Be', name: 'Beryllium', group: 2 },
+  { atomicNumber: 5, symbol: 'B', name: 'Boron', group: 13 },
+  { atomicNumber: 6, symbol: 'C', name: 'Carbon', group: 14 },
+  { atomicNumber: 7, symbol: 'N', name: 'Nitrogen', group: 15 },
+  { atomicNumber: 8, symbol: 'O', name: 'Oxygen', group: 16 },
+  { atomicNumber: 9, symbol: 'F', name: 'Fluorine', group: 17 },
+  { atomicNumber: 10, symbol: 'Ne', name: 'Neon', group: 18 },
+  // Add more elements as needed...
+];
+
+// DOM elements
+const periodicTable = document.getElementById('periodic-table');
+const searchBar = document.getElementById('search-bar');
+const elementDetails = document.getElementById('element-details');
+
+// Render the periodic table
+function renderPeriodicTable() {
+  periodicTable.innerHTML = ''; // Clear existing content
+  elements.forEach(element => {
+    const elementDiv = document.createElement('div');
+    elementDiv.className = 'element';
+    elementDiv.textContent = element.symbol;
+    elementDiv.setAttribute('data-atomic-number', element.atomicNumber);
+    elementDiv.setAttribute('data-group', element.group);
+    elementDiv.addEventListener('click', () => showElementDetails(element));
+    periodicTable.appendChild(elementDiv);
+  });
+}
+
+// Show details of the selected element
+function showElementDetails(element) {
+  // Clear previous highlights
+  document.querySelectorAll('.element').forEach(el => {
+    el.classList.remove('highlight', 'group-highlight');
+  });
+
+  // Highlight the selected element and its group
+  const selectedElement = document.querySelector(`[data-atomic-number="${element.atomicNumber}"]`);
+  selectedElement.classList.add('highlight');
+
+  const groupElements = document.querySelectorAll(`[data-group="${element.group}"]`);
+  groupElements.forEach(el => el.classList.add('group-highlight'));
+
+  // Display details
+  elementDetails.innerHTML = `
+    <h2>${element.name}</h2>
+    <p>Atomic Number: ${element.atomicNumber}</p>
+    <p>Symbol: ${element.symbol}</p>
+    <p>Group: ${element.group}</p>
+  `;
+}
+
+// Search functionality
+searchBar.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase();
+  const filteredElements = elements.filter(element =>
+    element.name.toLowerCase().includes(query) ||
+    element.symbol.toLowerCase().includes(query) ||
+    element.atomicNumber.toString().includes(query)
+  );
+
+  // Highlight matching elements
+  document.querySelectorAll('.element').forEach(el => {
+    const atomicNumber = el.getAttribute('data-atomic-number');
+    const isMatch = filteredElements.some(element => element.atomicNumber.toString() === atomicNumber);
+    el.style.backgroundColor = isMatch ? '#ffcc00' : '';
+  });
+});
+
+// Initialize the periodic table
+renderPeriodicTable();
+  </script>
+</body>
+</html>

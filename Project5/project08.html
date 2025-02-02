@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Story Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .game-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    .story {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .choice-button {
+      padding: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    .choice-button:hover {
+      background-color: #005bb5;
+    }
+    .reset-button {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #ff3b30;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+    .reset-button:hover {
+      background-color: #cc3128;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="story" id="story"></div>
+    <div class="choices" id="choices"></div>
+    <button class="reset-button" onclick="resetGame()">Reset Game</button>
+  </div>
+
+  <script>
+    // Game data
+const storyData = [
+  {
+    id: 1,
+    text: "You wake up in a room. Do you:",
+    choices: [
+      { text: "Explore the room", nextId: 2 },
+      { text: "Look for a way out", nextId: 3 },
+    ],
+  },
+  {
+    id: 2,
+    text: "You find a hidden path in the closet. Do you:",
+    choices: [
+      { text: "Follow the path", nextId: 4 },
+      { text: "Return to where you started", nextId: 1 },
+    ],
+  },
+  {
+    id: 3,
+    text: "You see a cave. Do you:",
+    choices: [
+      { text: "Enter the cave", nextId: 5 },
+      { text: "Keep looking for a way out", nextId: 6 },
+    ],
+  },
+  {
+    id: 4,
+    text: "You discover a exit! You win!",
+    choices: [],
+  },
+  {
+    id: 5,
+    text: "You are eaten by a monster. Game over!",
+    choices: [],
+  },
+  {
+    id: 6,
+    text: "You find a map leading to safety. You win!",
+    choices: [],
+  },
+];
+
+// DOM elements
+const storyElement = document.getElementById('story');
+const choicesElement = document.getElementById('choices');
+
+// Game state
+let currentStoryId = 1;
+
+// Load game state from localStorage
+function loadGame() {
+  const savedState = localStorage.getItem('storyGameState');
+  if (savedState) {
+    currentStoryId = parseInt(savedState, 10);
+  }
+  updateGame();
+}
+
+// Save game state to localStorage
+function saveGame() {
+  localStorage.setItem('storyGameState', currentStoryId.toString());
+}
+
+// Update the game display
+function updateGame() {
+  const currentStory = storyData.find(story => story.id === currentStoryId);
+  storyElement.textContent = currentStory.text;
+
+  // Clear previous choices
+  choicesElement.innerHTML = '';
+
+  // Add new choices
+  currentStory.choices.forEach(choice => {
+    const button = document.createElement('button');
+    button.className = 'choice-button';
+    button.textContent = choice.text;
+    button.addEventListener('click', () => {
+      currentStoryId = choice.nextId;
+      saveGame();
+      updateGame();
+    });
+    choicesElement.appendChild(button);
+  });
+
+  // If no choices, show reset button
+  if (currentStory.choices.length === 0) {
+    const resetButton = document.createElement('button');
+    resetButton.className = 'reset-button';
+    resetButton.textContent = 'Reset Game';
+    resetButton.addEventListener('click', resetGame);
+    choicesElement.appendChild(resetButton);
+  }
+}
+
+// Reset the game
+function resetGame() {
+  localStorage.removeItem('storyGameState');
+  currentStoryId = 1;
+  updateGame();
+}
+
+// Initialize the game
+loadGame();
+  </script>
+</body>
+</html>
